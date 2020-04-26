@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue</title>
+</head>
+<style>
+    *{
+        font-size:18px;
+        margin:0;
+        padding:0;
+    }
+    #app{
+        width:1000px;
+        margin:0 auto;
+    }
+    .header{
+        height:50px;
+        line-height:50px;
+    }
+    table{
+        text-align: left;
+        width: 1000px;
+    }
+    a{
+        color:#333;
+        font-weight: 900;
+        text-decoration: none;
+    }
+    a:hover{
+        color:#ff0000;
+    }
+    .title{
+        color:#396fad;
+    }
+    tr{
+        line-height:30px;
+    }
+</style>
+<body>
+<div id="app" class="formflush">
+    <div class="header">
+        <a href="http://heimanews.fuzzbear.club/api/news/create">添加新闻</a> 
+        &nbsp;
+        <a href="javascript:void(0);" @click="delall()">删除全部</a> 
+        &nbsp;
+        <a href="http://heimanews.fuzzbear.club/admin/news/index">进入后端</a>
+    </div>
+
+    <div>
+        <table >
+            <tr class="title">
+                <th>ID</th>
+                <th>标题</th>
+                <th>作者</th>
+                <th>操作</th>
+            </tr>
+
+            <tr v-for="v in news">
+                <td>{{v.id}}</td>
+                <td><a href="javascript:void(0);" @click="read(v.id)">{{v.title}}</a></td>
+                <td>{{v.author}}</td>
+                <td>
+                    <a href="javascript:void(0);" @click="edit(v.id)">修改</a>
+                    <a href="javascript:void(0);" @click="del(v.id,$event)" >删除</a>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+</div>
+</body>
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="/js/vue.js"></script>
+<script src="/js/axios.js"></script>
+<script src="/js/vue-router.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            news:[]
+        },
+        mounted() {
+            axios.get('http://heimanews.fuzzbear.club/api/news/index').then(ret => {
+                // console.log(ret)
+                this.news = ret.data.data
+            })
+        },
+        methods: {
+            read:function(id){
+                // console.log(id);
+                $(window).attr('location','read.html?id='+id);
+                // axios.get('http://heimanews.fuzzbear.club/api/news/index').then(ret => {
+                //     console.log(ret);
+                // })
+            },
+            del:function(id,event){
+                // console.log(obj)
+                if(confirm('确认删除')){
+                    axios.get('http://heimanews.fuzzbear.club/api/news/delete?id='+id).then(ret =>{
+
+                        var obj = event.target
+                        $(obj).parents('tr').remove();
+                        alert('删除成功');
+                    })
+                }
+            },
+            edit:function(id){
+                $(window).attr('location','http://heimanews.fuzzbear.club/api/news/edit?id='+id);
+                // axios.get('http://heimanews.fuzzbear.club/api/news/edit?id='+id).then(ret =>{
+                //         console.log(ret)
+                // })
+            },
+            delall:function(){
+                if(confirm('确认删除全部')){
+                    axios.get('http://heimanews.fuzzbear.club/api/news/deleteall').then(ret =>{
+                        window.location.reload()
+                        // $(".formflush").load(location.href+".formflush")
+                        // alert('删除成功');
+                    })
+                }
+            }
+        }
+
+    })
+
+
+</script>
+</html>
