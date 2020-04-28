@@ -37,14 +37,15 @@
     tr{
         line-height:30px;
     }
+    [v-cloak] { display: none } 
 </style>
 <body>
-<div id="app" class="formflush">
+<div id="app" class="formflush" v-cloak>
     <div class="header">
-        <a href="http://heimanews.fuzzbear.club/api/news/create">添加新闻</a> 
+        <!-- <a href="http://heimanews.fuzzbear.club/api/news/create">添加新闻</a> 
         &nbsp;
         <a href="javascript:void(0);" @click="delall()">删除全部</a> 
-        &nbsp;
+        &nbsp; -->
         <a href="http://heimanews.fuzzbear.club/admin/news/index">进入后端</a>
     </div>
 
@@ -54,28 +55,74 @@
                 <th>ID</th>
                 <th>标题</th>
                 <th>作者</th>
-                <th>操作</th>
+                <!-- <th>操作</th> -->
             </tr>
 
             <tr v-for="v in news">
                 <td>{{v.id}}</td>
-                <td><a href="javascript:void(0);" @click="read(v.id)">{{v.title}}</a></td>
+                <!-- <td><a href="javascript:void(0);" @click="read(v.id)">{{v.title}}</a></td> -->
+                <!-- router-link相当于a的作用，导航切换功能 -->
+                <td><router-link :to="{name:'read',params:{id:v.id}}">{{v.title}}</router-link></td>
                 <td>{{v.author}}</td>
-                <td>
+                <!-- <td>
                     <a href="javascript:void(0);" @click="edit(v.id)">修改</a>
                     <a href="javascript:void(0);" @click="del(v.id,$event)" >删除</a>
-                </td>
+                </td> -->
             </tr>
 
         </table>
-    </div>
+    </div><br>
+    <hr><br>
+    <h3>新闻内容显示</h3><br>
+    <!-- 路由组件显示的容器 -->
+    <router-view></router-view>
 </div>
 </body>
 <script src="js/jquery-3.3.1.min.js"></script>
 <script src="/js/vue.js"></script>
 <script src="/js/axios.js"></script>
 <script src="/js/vue-router.js"></script>
+<!-- 定义子组件的html -->
+<script type="text/x-template" id="read">
+
+    <div>
+        {{ info.content }}
+    </div>
+</script>
 <script>
+    var Read = {
+        template: '#read',
+        data() {
+            return{
+                id:0,
+                info:{}
+            }
+        },
+        mounted(){
+            this.getData();
+        },
+        watch: {
+            $route(newval,oldval){
+                this.getData();
+            }
+        },
+        methods: {
+        // 根据id获取最新新闻
+        getData(){
+          // 新闻id
+          this.id = this.$route.params.id;
+          axios.get('http://heimanews.fuzzbear.club/api/news/read?id=' + this.id).then(ret => {
+            this.info = ret.data.data
+          })
+        } 
+      }
+    }
+    const routes = [
+        {path:'/read?id=:id',component:Read,name:'read'}
+    ]
+    const router = new VueRouter({
+      routes
+    })
     var app = new Vue({
         el: '#app',
         data: {
@@ -87,13 +134,16 @@
                 this.news = ret.data.data
             })
         },
+        
+        router,
         methods: {
             read:function(id){
                 // console.log(id);
-                $(window).attr('location','read.html?id='+id);
-                // axios.get('http://heimanews.fuzzbear.club/api/news/index').then(ret => {
-                //     console.log(ret);
-                // })
+                // $(window).attr('location','read.html?id='+id);
+                this.id = this.$route.params.id;
+                axios.get('http://www.hmxw.com/api/v1/news/' + this.id).then(ret => {
+                    this.info = ret.data.data
+                })
             },
             del:function(id,event){
                 // console.log(obj)
@@ -120,7 +170,14 @@
                         // alert('删除成功');
                     })
                 }
-            }
+            },
+            // getData:function(){
+            //     // 新闻id
+            //     this.id = this.$route.params.id;
+            //     axios.get('http://www.hmxw.com/api/v1/news/' + this.id).then(ret => {
+            //         this.info = ret.data.data
+            //     })
+            // } 
         }
 
     })
